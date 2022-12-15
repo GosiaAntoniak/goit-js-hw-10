@@ -15,7 +15,11 @@ function inputListener(event) {
   countryList.innerHTML = null;
   countryInfo.innerHTML = null;
   const searchValue = event.target.value;
-  if (searchValue.length > 0) {
+  const isSearchValueInvalid = /[^A-Za-z ]/.test(searchValue);
+  if (isSearchValueInvalid) {
+    Notify.failure('Please enter only letters. Do not use any numbers or special characters.');
+  }
+  if (searchValue.length > 0 && !isSearchValueInvalid) {
     fetchAndRenderCountries(searchValue);
   }
 }
@@ -66,33 +70,28 @@ function renderCountryList(countries) {
   } else if (countries.length === 1) {
 
     countryList.innerHTML = null;
-    const markup = countries.map((country) => {
-      const parsedLanguages = country.languages.map(lang => lang.name).join(', ');
-      return `<ul class='country-info__list'>
-      <li class='name'><img src='${country.flags.svg}' class='name__img' alt='Flag of ${country.name}'><p class='country-info__name'><b>${country.name}</b></p></li>
-      <li class='country-info__item'><b>Capital:</b> ${country.capital}</li>
-      <li class='country-info__item'><b>Population:</b> ${country.population}</li>
-      <li class='country-info__item'><b>Languages:</b> ${parsedLanguages}</li></ul>`;
-    }).join(' ');
+    const markup = countries.map((country) => getMoreInfo(country)).join(' ');
     const markupReplaced = markup.replaceAll('undefined', '');
     countryInfo.innerHTML = markupReplaced;
   }
 }
 
-
 function getMoreInfo(country) {
-  console.log(country);
   countryList.innerHTML = null;
-  const parsedLanguages = country.languages.map(lang => lang.name).join(', ');
+  const capital = country.capital ? country.capital : '-';
+  const population = country.population ? country.population : '-';
+  const parsedLanguages = country.languages ? country.languages.map(lang => lang.name).join(', ') : '-';
   const markup = `<ul class='country-info__list'>
       <li class='name'><img src='${country.flags.svg}' class='name__img' alt='Flag of ${country.name}'><p class='country-info__name'><b>${country.name}</b></p></li>
-      <li class='country-info__item'><b>Capital:</b> ${country.capital}</li>
-      <li class='country-info__item'><b>Population:</b> ${country.population}</li>
-      <li class='country-info__item'><b>Languages:</b> ${parsedLanguages}</li></ul>`;
+      <li class='country-info__item'><b>Capital:</b> ${capital}</li>
+      <li class='country-info__item'><b>Population:</b> ${population}</li>
+      <li class='country-info__item'><b>${languageLabelMarkup(country)}:</b> ${parsedLanguages}</li></ul>`;
   const markupReplaced = markup.replaceAll('undefined', '');
   return countryInfo.innerHTML = markupReplaced;
+
+
 }
 
-
-
-
+function languageLabelMarkup(country) {
+  return country.languages.length > 1 ? 'Languages' : 'Language';
+}
